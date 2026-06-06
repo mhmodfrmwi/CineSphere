@@ -1,0 +1,38 @@
+<nav class="bg-white shadow-lg p-4 relative">
+  <div class="flex items-center justify-between">
+    <a routerLink="/" class="text-2xl font-bold text-blue-600">CineSphere</a>
+
+    <button (click)="toggleMenu()" class="md:hidden">☰</button>
+
+    <div class="hidden md:flex gap-6 items-center">
+      <div class="relative group">
+        <button class="hover:text-blue-500">Categories ▾</button>
+        <div class="absolute hidden group-hover:block bg-white shadow-md p-2 mt-2 w-40">
+          @for (cat of genres(); track cat) {
+            <a class="block p-2 hover:bg-gray-100">{{ cat.name }}</a>
+          }
+        </div>
+      </div>
+      <input type="text" placeholder="Search..." class="border p-2 rounded-lg" />
+    </div>
+
+    <div class="hidden md:flex gap-4 items-center">
+      @if (isLoggedIn()) {
+        <a routerLink="/watchlist" class="hover:text-blue-500">🔖 Watchlist</a>
+        <div class="relative">
+          <button (click)="toggleProfile()" class="bg-gray-200 p-2 rounded-full">👤</button>
+          @if (isProfileOpen()) {
+            <div class="absolute right-0 mt-2 bg-white shadow-md p-2 w-32">
+              <a routerLink="/bookings" class="block p-2">My Bookings</a>
+              <button (click)="logout()" class="block w-full text-left p-2 text-red-500">
+                Logout
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="bg-blue-500 text-white px-4 py-2 rounded">Login</a>
+      }
+    </div>
+  </div>
+</nav>

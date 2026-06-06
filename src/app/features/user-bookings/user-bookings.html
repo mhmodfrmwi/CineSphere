@@ -1,0 +1,14 @@
+<div class="container">
+  <h2>My Bookings</h2>
+  <ul class="list-group">
+    @for (booking of bookings(); track booking.bookingId) {
+      <li class="list-group-item">
+        <strong>Booking ID:</strong> {{ booking.bookingId }}<br />
+        <strong>Booking Date:</strong> {{ booking.bookingDate }}<br />
+        <strong>Total Price:</strong> ${{ booking.totalPrice.toFixed(2) }}<br />
+        <strong>Showtime ID:</strong> {{ booking.showtimeId }}<br />
+        <strong>Seat IDs:</strong> {{ booking.seatIds.join(', ') }}
+      </li>
+    }
+  </ul>
+</div>

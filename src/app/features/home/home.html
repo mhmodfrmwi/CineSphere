@@ -1,0 +1,24 @@
+<div class="p-8">
+  
+  <h1 class="text-3xl font-bold mb-6">Now Showing</h1>
+  <input
+    type="text"
+    placeholder="Search movies..."
+    class="w-full mb-6 p-3 border border-gray-300 rounded-lg"
+    (input)="searchText.set($event.target.value)"
+  />
+  <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 cursor-pointer">
+    @for (movie of filteredMovies(); track movie.id) {
+      <div
+        class="bg-white rounded-lg shadow-md overflow-hidden"
+        [routerLink]="['/movie', movie.id]"
+      >
+        <img [src]="movie.posterUrl" alt="Poster" class="w-full h-72 object-cover" />
+        <div class="p-4">
+          <h3 class="text-xl font-bold mb-2">{{ movie.title }}</h3>
+          <p class="text-gray-600 text-sm line-clamp-3">{{ movie.description }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>

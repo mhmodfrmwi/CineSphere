@@ -1,0 +1,41 @@
+@if (movie(); as m) {
+  <h1>{{ m.title }}</h1>
+  <p>{{ m.description }}</p>
+  <img [src]="m.posterUrl" alt="Poster" />
+  <p>Release Date: {{ m.releaseDate | date: 'short' }}</p>
+  <h2>Showtimes</h2>
+  <ul>
+    @for (showtime of showtimes(); track showtime.id) {
+      <label class="block p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+        <input type="radio" name="showtime" (click)="selectedShowtime.set(showtime)" />
+        <span>{{ showtime.startTime | date: 'short' }}</span> -
+        <span>{{ showtime.ticketPrice }} EGP</span>
+      </label>
+    }
+  </ul>
+  @if (selectedShowtime(); as st) {
+    <h3>Available Seats for {{ st.startTime | date: 'short' }}</h3>
+    <div class="grid grid-cols-10 gap-2">
+      @for (seat of seats(); track seat.id) {
+        <div
+          class="p-2 border rounded text-center"
+          [class.bg-green-500]="seat.isAvailable && !selectedSeatsIds().includes(seat.id)"
+          [class.bg-red-500]="!seat.isAvailable"
+          [class.bg-blue-500]="selectedSeatsIds().includes(seat.id)"
+          (click)="seat.isAvailable && reserveSeat(seat.id)"
+        >
+          {{ seat.seatNumber }}
+        </div>
+      }
+      <button
+        class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        (click)="createBooking()"
+        [disabled]="selectedSeatsIds().length === 0"
+      >
+        Create Booking
+      </button>
+    </div>
+  }
+} @else {
+  <p>Loading...</p>
+}

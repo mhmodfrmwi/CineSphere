@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.dropdown-panel {
+  scrollbar-width: thin;
+  scrollbar-color: #e50914 #222;
+}
+
+.dropdown-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dropdown-panel::-webkit-scrollbar-thumb {
+  background: #e50914;
+  border-radius: 4px;
+}

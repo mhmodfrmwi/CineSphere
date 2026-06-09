@@ -1,0 +1,57 @@
+<section class="px-4 md:px-12 py-8 max-w-3xl mx-auto">
+  <a routerLink="/bookings" class="nav-link text-sm mb-6 inline-block">← Back to My Bookings</a>
+
+  @if (booking(); as b) {
+    <div class="card-cine">
+      <div class="flex items-start justify-between mb-6">
+        <h1 class="section-title">Booking #{{ b.bookingId }}</h1>
+        <span class="text-cine-red font-semibold text-lg">${{ b.totalPrice.toFixed(2) }}</span>
+      </div>
+
+      <dl class="space-y-4 text-sm">
+        <div class="flex justify-between gap-4 border-b border-white/5 pb-3">
+          <dt class="text-cine-gray-light">Booking Date</dt>
+          <dd class="text-white">{{ b.bookingDate | date: 'medium' }}</dd>
+        </div>
+        @if (showtime(); as st) {
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-3">
+            <dt class="text-cine-gray-light">Showtime</dt>
+            <dd class="text-white">{{ st.startTime | date: 'medium' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-3">
+            <dt class="text-cine-gray-light">Ticket Price</dt>
+            <dd class="text-white">{{ st.ticketPrice }} EGP</dd>
+          </div>
+        }
+        @if (hall(); as h) {
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-3">
+            <dt class="text-cine-gray-light">Hall</dt>
+            <dd class="text-white">{{ h.name }} ({{ h.capacity }} seats)</dd>
+          </div>
+        }
+        <div>
+          <dt class="text-cine-gray-light mb-2">Seats</dt>
+          <dd class="flex flex-wrap gap-2">
+            @for (seatId of b.seatIds; track seatId) {
+              <span class="px-3 py-1 rounded bg-cine-surface text-white border border-white/10 text-sm">
+                Seat {{ seatId }}
+              </span>
+            }
+          </dd>
+        </div>
+      </dl>
+
+      @if (message()) {
+        <p class="mt-4 text-sm" [class.text-green-400]="cancelled()" [class.text-cine-red]="!cancelled()">{{ message() }}</p>
+      }
+
+      @if (!cancelled()) {
+        <button type="button" class="btn-secondary mt-6 text-sm" (click)="cancelBooking()">Cancel Booking</button>
+      }
+    </div>
+  } @else if (loading()) {
+    <p class="text-cine-gray-light animate-pulse">Loading booking...</p>
+  } @else if (error()) {
+    <p class="text-cine-red">Booking not found.</p>
+  }
+</section>

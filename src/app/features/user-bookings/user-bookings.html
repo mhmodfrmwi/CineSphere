@@ -1,14 +1,50 @@
-<div class="container">
-  <h2>My Bookings</h2>
-  <ul class="list-group">
-    @for (booking of bookings(); track booking.bookingId) {
-      <li class="list-group-item">
-        <strong>Booking ID:</strong> {{ booking.bookingId }}<br />
-        <strong>Booking Date:</strong> {{ booking.bookingDate }}<br />
-        <strong>Total Price:</strong> ${{ booking.totalPrice.toFixed(2) }}<br />
-        <strong>Showtime ID:</strong> {{ booking.showtimeId }}<br />
-        <strong>Seat IDs:</strong> {{ booking.seatIds.join(', ') }}
-      </li>
-    }
-  </ul>
-</div>
+<section class="px-4 md:px-12 py-8 max-w-[1920px] mx-auto">
+  <div class="mb-8">
+    <h1 class="section-title">My Bookings</h1>
+    <p class="section-subtitle">Your ticket reservations and showtime details</p>
+  </div>
+
+  @if (bookings().length > 0) {
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (booking of bookings(); track booking.bookingId) {
+        <li class="card-cine">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-xs font-medium uppercase tracking-wider text-cine-red">Booking</span>
+            <a [routerLink]="['/bookings', booking.bookingId]" class="text-xs text-cine-red hover:underline">
+              #{{ booking.bookingId }} →
+            </a>
+          </div>
+          <dl class="space-y-2 text-sm">
+            <div class="flex justify-between gap-4">
+              <dt class="text-cine-gray-light">Date</dt>
+              <dd class="text-white font-medium">{{ booking.bookingDate }}</dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-cine-gray-light">Total</dt>
+              <dd class="text-cine-red font-semibold">${{ booking.totalPrice.toFixed(2) }}</dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-cine-gray-light">Showtime</dt>
+              <dd class="text-white">#{{ booking.showtimeId }}</dd>
+            </div>
+            <div>
+              <dt class="text-cine-gray-light mb-1">Seats</dt>
+              <dd class="flex flex-wrap gap-1.5">
+                @for (seatId of booking.seatIds; track seatId) {
+                  <span class="px-2 py-0.5 rounded bg-cine-surface text-xs text-white border border-white/10">
+                    {{ seatId }}
+                  </span>
+                }
+              </dd>
+            </div>
+          </dl>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="text-center py-16 card-cine max-w-md mx-auto">
+      <p class="text-cine-gray-light mb-4">You don't have any bookings yet.</p>
+      <a routerLink="/" class="btn-primary text-sm">Browse Movies</a>
+    </div>
+  }
+</section>

@@ -1,10 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api/apiService/api';
 import { BookingDTO } from '../../core/models/BookingDTO';
 
 @Component({
   selector: 'app-user-bookings',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './user-bookings.html',
   styleUrl: './user-bookings.css',
 })

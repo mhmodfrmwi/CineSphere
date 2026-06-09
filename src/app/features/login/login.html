@@ -1,32 +1,46 @@
-<div class="login-container">
-  <h2 class="text-2xl font-bold mb-6">Login to Your Account</h2>
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
-    <div>
-      <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-      <input
-        id="email"
-        type="email"
-        formControlName="email"
-        class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Enter your email"
-      />
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 relative">
+  <div class="absolute inset-0 bg-gradient-to-b from-cine-black-deep via-cine-black/90 to-cine-black pointer-events-none"></div>
+  <div
+    class="absolute inset-0 opacity-20 pointer-events-none"
+    style="background: radial-gradient(ellipse at top, #e50914 0%, transparent 60%)"
+  ></div>
+
+  <div class="relative w-full max-w-md card-cine shadow-2xl">
+    <div class="mb-8 text-center">
+      <h1 class="font-display text-4xl tracking-widest text-cine-red mb-2">CineSphere</h1>
+      <h2 class="section-title text-xl mb-1">Sign In</h2>
+      <p class="section-subtitle">Access your account to book tickets</p>
     </div>
-    <div>
-      <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Enter your password"
-      />
-    </div>
-    <button
-      type="submit"
-      class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      [disabled]="loginForm.invalid"
-    >
-      Login
-    </button>
-  </form>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      <div>
+        <label for="email" class="block text-sm font-medium text-cine-gray-light mb-1.5">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="input-dark"
+          placeholder="you@example.com"
+        />
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-medium text-cine-gray-light mb-1.5">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="input-dark"
+          placeholder="Enter your password"
+        />
+      </div>
+      <button type="submit" class="btn-primary w-full py-3" [disabled]="loginForm.invalid">
+        Sign In
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-cine-gray-light">
+      Don't have an account?
+      <a routerLink="/register" class="text-cine-red hover:underline">Sign up</a>
+    </p>
+  </div>
 </div>

@@ -1,24 +1,250 @@
-<div class="p-8">
-  
-  <h1 class="text-3xl font-bold mb-6">Now Showing</h1>
-  <input
-    type="text"
-    placeholder="Search movies..."
-    class="w-full mb-6 p-3 border border-gray-300 rounded-lg"
-    (input)="searchText.set($event.target.value)"
-  />
-  <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 cursor-pointer">
-    @for (movie of filteredMovies(); track movie.id) {
-      <div
-        class="bg-white rounded-lg shadow-md overflow-hidden"
-        [routerLink]="['/movie', movie.id]"
-      >
-        <img [src]="movie.posterUrl" alt="Poster" class="w-full h-72 object-cover" />
-        <div class="p-4">
-          <h3 class="text-xl font-bold mb-2">{{ movie.title }}</h3>
-          <p class="text-gray-600 text-sm line-clamp-3">{{ movie.description }}</p>
+<!-- Hero -->
+@if (featuredMovie(); as hero) {
+  <section class="relative h-[55vh] md:h-[70vh] min-h-[400px] overflow-hidden">
+    <img
+      [src]="hero.posterUrl"
+      [alt]="hero.title"
+      class="absolute inset-0 w-full h-full object-cover object-top scale-105"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-cine-black via-cine-black/70 to-cine-black/30"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-cine-black via-cine-black/80 to-transparent"></div>
+
+    <div class="relative h-full flex flex-col justify-end px-4 md:px-12 pb-12 md:pb-16 max-w-[1920px] mx-auto">
+      <p class="text-cine-red font-semibold text-sm uppercase tracking-widest mb-2">Featured</p>
+      <h1 class="font-display text-5xl md:text-7xl lg:text-8xl tracking-wide text-white mb-4 max-w-3xl">
+        {{ hero.title }}
+      </h1>
+      <p class="text-cine-gray-light text-sm md:text-base max-w-xl line-clamp-3 mb-4">
+        {{ hero.description }}
+      </p>
+      <div class="flex flex-wrap gap-3 text-sm text-cine-gray-light mb-6">
+        <span class="px-2 py-0.5 rounded bg-white/10 text-white">{{ hero.language }}</span>
+        <span>{{ formatDuration(hero.durationInMinutes) }}</span>
+        <span>{{ hero.releaseDate | date: 'yyyy' }}</span>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a [routerLink]="['/movie', hero.id]" class="btn-primary">Book Tickets</a>
+        @if (hero.trailerUrl) {
+          <a [href]="hero.trailerUrl" target="_blank" rel="noopener" class="btn-secondary">Watch Trailer</a>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<div class="px-4 md:px-12 py-8 max-w-[1920px] mx-auto space-y-10">
+
+  <!-- Trending row -->
+  @if (trendingMovies().length > 0 && !hasActiveFilters()) {
+    <section>
+      <h2 class="section-title mb-4">Trending Now</h2>
+      <div class="movie-row">
+        @for (movie of trendingMovies(); track movie.id) {
+          <a [routerLink]="['/movie', movie.id]" class="movie-row-card group">
+            <div class="relative overflow-hidden rounded-md aspect-[2/3] bg-cine-card ring-1 ring-white/5 group-hover:ring-cine-red/40 group-hover:scale-105 transition-all duration-300">
+              <img [src]="movie.posterUrl" [alt]="movie.title" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-gradient-to-t from-cine-black/80 to-transparent"></div>
+              <p class="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold line-clamp-2">{{ movie.title }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- New releases row -->
+  @if (newReleases().length > 0 && !hasActiveFilters()) {
+    <section>
+      <h2 class="section-title mb-4">New Releases</h2>
+      <div class="movie-row">
+        @for (movie of newReleases(); track movie.id) {
+          <a [routerLink]="['/movie', movie.id]" class="movie-row-card group">
+            <div class="relative overflow-hidden rounded-md aspect-[2/3] bg-cine-card ring-1 ring-white/5 group-hover:ring-cine-red/40 group-hover:scale-105 transition-all duration-300">
+              <img [src]="movie.posterUrl" [alt]="movie.title" class="w-full h-full object-cover" />
+              <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-cine-red text-white uppercase">New</span>
+              <div class="absolute inset-0 bg-gradient-to-t from-cine-black/80 to-transparent"></div>
+              <p class="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold line-clamp-2">{{ movie.title }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Browse section -->
+  <section>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+      <div>
+        <h2 class="section-title">Browse Movies</h2>
+        <p class="section-subtitle">
+          @if (!loading()) {
+            {{ totalCount() }} movie{{ totalCount() === 1 ? '' : 's' }} available
+          } @else {
+            Loading catalogue...
+          }
+        </p>
+        @if (selectedGenre(); as genre) {
+          <p class="mt-2 text-sm">
+            <span class="text-cine-gray-light">Genre:</span>
+            <span class="text-cine-red font-medium ml-1">{{ genreName(genre) }}</span>
+          </p>
+        }
+      </div>
+
+      <div class="flex flex-wrap gap-3 items-center">
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="Search movies..."
+            class="input-dark w-56 md:w-64 pr-8"
+            [value]="searchText()"
+            (input)="onSearchInput($any($event.target).value)"
+          />
+          @if (searchText()) {
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-cine-gray-light hover:text-white text-sm"
+              (click)="onSearchInput('')"
+              aria-label="Clear search"
+            >×</button>
+          }
         </div>
+        <select class="input-dark w-40 text-sm py-2" [value]="sortBy()" (change)="onSortChange($any($event.target).value)">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+        @if (hasActiveFilters()) {
+          <button type="button" class="btn-secondary text-sm py-2" (click)="clearFilters()">Clear All</button>
+        }
+      </div>
+    </div>
+
+    <!-- Genre chips -->
+    @if (genres().length > 0) {
+      <div class="genre-chips mb-8">
+        <button
+          type="button"
+          class="genre-chip"
+          [class.genre-chip-active]="!selectedGenre()"
+          (click)="selectGenre(null)"
+        >All</button>
+        @for (genre of genres(); track genre.id) {
+          <button
+            type="button"
+            class="genre-chip"
+            [class.genre-chip-active]="selectedGenre() === genre.name"
+            (click)="selectGenre(genre.name)"
+          >{{ genre.name }}</button>
+        }
       </div>
     }
-  </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+        @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+          <div class="animate-pulse">
+            <div class="aspect-[2/3] rounded-md bg-cine-surface"></div>
+            <div class="h-3 mt-2 rounded bg-cine-surface w-3/4"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Error -->
+    @else if (error()) {
+      <div class="text-center py-16 card-cine max-w-md mx-auto">
+        <p class="text-cine-red mb-4">Failed to load movies.</p>
+        <button type="button" class="btn-primary text-sm" (click)="fetchMovies()">Try Again</button>
+      </div>
+    }
+
+    <!-- Grid -->
+    @else {
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+        @for (movie of sortedMovies(); track movie.id) {
+          <article class="group relative cursor-pointer" [routerLink]="['/movie', movie.id]">
+            <div
+              class="relative overflow-hidden rounded-md aspect-[2/3] bg-cine-card ring-1 ring-white/5 transition-all duration-300 ease-out group-hover:scale-105 group-hover:ring-cine-red/40 group-hover:shadow-[0_8px_30px_rgba(229,9,20,0.25)] group-hover:z-10"
+            >
+              <img [src]="movie.posterUrl" [alt]="movie.title" class="w-full h-full object-cover" loading="lazy" />
+              <div class="absolute inset-0 bg-gradient-to-t from-cine-black via-cine-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity"></div>
+
+              <div class="absolute top-2 left-2 flex flex-col gap-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/60 text-white backdrop-blur-sm">
+                  {{ movie.language }}
+                </span>
+              </div>
+
+              <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="w-8 h-8 flex items-center justify-center rounded-full bg-cine-red/90 text-white text-sm shadow-cine-glow">▶</span>
+              </div>
+
+              <div class="absolute bottom-0 left-0 right-0 p-3 translate-y-2 group-hover:translate-y-0 transition-transform">
+                <h3 class="text-white font-semibold text-sm leading-tight line-clamp-2 drop-shadow-lg">{{ movie.title }}</h3>
+                <p class="text-cine-gray-light text-[10px] mt-1">
+                  {{ movie.releaseDate | date: 'yyyy' }} · {{ formatDuration(movie.durationInMinutes) }}
+                </p>
+              </div>
+            </div>
+            <p class="mt-2 text-cine-gray-light text-xs line-clamp-2 px-0.5 hidden sm:block">{{ movie.description }}</p>
+          </article>
+        } @empty {
+          <div class="col-span-full text-center py-16 card-cine">
+            <p class="text-cine-gray-light mb-4">No movies match your filters.</p>
+            <button type="button" class="btn-primary text-sm" (click)="clearFilters()">Clear Filters</button>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <nav class="flex items-center justify-center gap-2 mt-10" aria-label="Pagination">
+          <button
+            type="button"
+            class="pagination-btn"
+            [disabled]="pageIndex() === 1"
+            (click)="goToPage(pageIndex() - 1)"
+          >← Prev</button>
+
+          @for (page of pageNumbers(); track page) {
+            <button
+              type="button"
+              class="pagination-btn"
+              [class.pagination-btn-active]="page === pageIndex()"
+              (click)="goToPage(page)"
+            >{{ page }}</button>
+          }
+
+          <button
+            type="button"
+            class="pagination-btn"
+            [disabled]="pageIndex() === totalPages()"
+            (click)="goToPage(pageIndex() + 1)"
+          >Next →</button>
+        </nav>
+      }
+    }
+  </section>
+
+  <!-- Quick links -->
+  <section [class]="!isLoggedIn() ? 'grid gap-4 sm:grid-cols-2 pb-8' : 'grid gap-4 pb-8'">
+    <a routerLink="/cinemas" class="card-cine flex items-center gap-4 hover:border-cine-red/40 transition-colors group">
+      <span class="text-3xl">🎬</span>
+      <div>
+        <h3 class="text-white font-semibold group-hover:text-cine-red transition-colors">Find a Cinema</h3>
+        <p class="text-cine-gray-light text-sm">Browse theaters and halls near you</p>
+      </div>
+    </a>
+    @if (!isLoggedIn()) {
+      <a routerLink="/register" class="card-cine flex items-center gap-4 hover:border-cine-red/40 transition-colors group">
+        <span class="text-3xl">🎟️</span>
+        <div>
+          <h3 class="text-white font-semibold group-hover:text-cine-red transition-colors">Join CineSphere</h3>
+          <p class="text-cine-gray-light text-sm">Create an account to book tickets instantly</p>
+        </div>
+      </a>
+    }
+  </section>
 </div>

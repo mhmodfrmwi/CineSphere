@@ -1,38 +1,138 @@
-<nav class="bg-white shadow-lg p-4 relative">
-  <div class="flex items-center justify-between">
-    <a routerLink="/" class="text-2xl font-bold text-blue-600">CineSphere</a>
+<nav class="sticky top-0 z-50 bg-cine-black/95 backdrop-blur-md border-b border-white/5 px-4 md:px-12 py-3">
+  <div class="flex items-center justify-between max-w-[1920px] mx-auto">
+    <a
+      routerLink="/"
+      class="font-display text-3xl tracking-widest text-cine-red hover:text-cine-red-dark transition-colors"
+    >
+      CineSphere
+    </a>
 
-    <button (click)="toggleMenu()" class="md:hidden">☰</button>
+    <button
+      (click)="toggleMenu()"
+      class="md:hidden text-cine-gray-light hover:text-white transition-colors text-xl"
+      aria-label="Toggle menu"
+    >
+      ☰
+    </button>
 
     <div class="hidden md:flex gap-6 items-center">
-      <div class="relative group">
-        <button class="hover:text-blue-500">Categories ▾</button>
-        <div class="absolute hidden group-hover:block bg-white shadow-md p-2 mt-2 w-40">
-          @for (cat of genres(); track cat) {
-            <a class="block p-2 hover:bg-gray-100">{{ cat.name }}</a>
-          }
-        </div>
+      <a routerLink="/cinemas" class="nav-link text-sm font-medium">Cinemas</a>
+
+      <div class="relative">
+        <button
+          type="button"
+          class="nav-link text-sm font-medium flex items-center gap-1"
+          [class.!text-white]="isCategoriesOpen()"
+          (click)="toggleCategories(); $event.stopPropagation()"
+          [attr.aria-expanded]="isCategoriesOpen()"
+          aria-haspopup="true"
+        >
+          Categories
+          <span class="text-[10px] transition-transform duration-200" [class.rotate-180]="isCategoriesOpen()">▾</span>
+        </button>
+
+        @if (isCategoriesOpen()) {
+          <div class="dropdown-panel left-0 top-full mt-1 w-48 max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
+            @if (genres().length > 0) {
+              <a
+                routerLink="/"
+                class="dropdown-item text-sm"
+                (click)="onGenreSelect()"
+              >All Movies</a>
+              <div class="my-1 border-t border-white/5"></div>
+              @for (cat of genres(); track cat.id) {
+                <a
+                  [routerLink]="['/']"
+                  [queryParams]="{ genre: cat.name }"
+                  class="dropdown-item text-sm"
+                  (click)="onGenreSelect()"
+                >{{ cat.name }}</a>
+              }
+            } @else {
+              <p class="px-2 py-3 text-sm text-cine-gray-light text-center">No categories yet</p>
+            }
+          </div>
+        }
       </div>
-      <input type="text" placeholder="Search..." class="border p-2 rounded-lg" />
     </div>
 
     <div class="hidden md:flex gap-4 items-center">
       @if (isLoggedIn()) {
-        <a routerLink="/watchlist" class="hover:text-blue-500">🔖 Watchlist</a>
+        <a routerLink="/bookings" class="nav-link text-sm font-medium">My Bookings</a>
+        @if (isAdmin()) {
+          <a routerLink="/admin" class="nav-link text-sm font-medium">Admin</a>
+        }
         <div class="relative">
-          <button (click)="toggleProfile()" class="bg-gray-200 p-2 rounded-full">👤</button>
+          <button
+            type="button"
+            (click)="toggleProfile(); $event.stopPropagation()"
+            class="w-9 h-9 flex items-center justify-center rounded-full bg-cine-surface border border-white/10 hover:border-cine-red transition-colors text-sm"
+            aria-label="Profile menu"
+            [attr.aria-expanded]="isProfileOpen()"
+          >
+            👤
+          </button>
           @if (isProfileOpen()) {
-            <div class="absolute right-0 mt-2 bg-white shadow-md p-2 w-32">
-              <a routerLink="/bookings" class="block p-2">My Bookings</a>
-              <button (click)="logout()" class="block w-full text-left p-2 text-red-500">
+            <div class="dropdown-panel right-0 top-full mt-1 w-40" (click)="$event.stopPropagation()">
+              <a routerLink="/profile" class="dropdown-item text-sm" (click)="closeAllDropdowns()">Profile</a>
+              <a routerLink="/bookings" class="dropdown-item text-sm" (click)="closeAllDropdowns()">My Bookings</a>
+              @if (isAdmin()) {
+                <a routerLink="/admin" class="dropdown-item text-sm" (click)="closeAllDropdowns()">Admin Panel</a>
+              }
+              <button (click)="logout()" class="dropdown-item text-sm text-cine-red hover:text-cine-red">
                 Logout
               </button>
             </div>
           }
         </div>
       } @else {
-        <a routerLink="/login" class="bg-blue-500 text-white px-4 py-2 rounded">Login</a>
+        <a routerLink="/register" class="nav-link text-sm font-medium">Sign Up</a>
+        <a routerLink="/login" class="btn-primary text-sm py-2 px-5">Sign In</a>
       }
     </div>
   </div>
+
+  @if (isMenuOpen()) {
+    <div class="md:hidden mt-4 pt-4 border-t border-white/5 space-y-1">
+      <a routerLink="/cinemas" class="dropdown-item text-sm" (click)="isMenuOpen.set(false)">Cinemas</a>
+
+      <button
+        type="button"
+        class="dropdown-item text-sm w-full flex items-center justify-between"
+        (click)="toggleMobileCategories()"
+        [attr.aria-expanded]="isMobileCategoriesOpen()"
+      >
+        Categories
+        <span class="text-[10px] transition-transform duration-200" [class.rotate-180]="isMobileCategoriesOpen()">▾</span>
+      </button>
+
+      @if (isMobileCategoriesOpen()) {
+        <div class="pl-3 space-y-1 border-l border-white/10 ml-2">
+          <a routerLink="/" class="dropdown-item text-sm" (click)="onGenreSelect()">All Movies</a>
+          @for (cat of genres(); track cat.id) {
+            <a
+              [routerLink]="['/']"
+              [queryParams]="{ genre: cat.name }"
+              class="dropdown-item text-sm"
+              (click)="onGenreSelect()"
+            >{{ cat.name }}</a>
+          } @empty {
+            <p class="px-2 py-2 text-sm text-cine-gray-light">No categories yet</p>
+          }
+        </div>
+      }
+
+      @if (isLoggedIn()) {
+        <a routerLink="/profile" class="dropdown-item text-sm" (click)="isMenuOpen.set(false)">Profile</a>
+        <a routerLink="/bookings" class="dropdown-item text-sm" (click)="isMenuOpen.set(false)">My Bookings</a>
+        @if (isAdmin()) {
+          <a routerLink="/admin" class="dropdown-item text-sm" (click)="isMenuOpen.set(false)">Admin Panel</a>
+        }
+        <button (click)="logout()" class="dropdown-item text-sm text-cine-red">Logout</button>
+      } @else {
+        <a routerLink="/register" class="dropdown-item text-sm" (click)="isMenuOpen.set(false)">Sign Up</a>
+        <a routerLink="/login" class="btn-primary w-full text-sm mt-2" (click)="isMenuOpen.set(false)">Sign In</a>
+      }
+    </div>
+  }
 </nav>

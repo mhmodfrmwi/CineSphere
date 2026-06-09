@@ -1,0 +1,297 @@
+<section class="px-4 md:px-12 py-8 max-w-[1920px] mx-auto">
+  <div class="mb-8">
+    <h1 class="section-title">Admin Panel</h1>
+    <p class="section-subtitle">Manage cinemas, movies, showtimes, and more</p>
+  </div>
+
+  @if (message()) {
+    <p class="mb-4 text-sm text-green-400">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="mb-4 text-sm text-cine-red">{{ error() }}</p>
+  }
+
+  <div class="flex flex-wrap gap-2 mb-8">
+    @for (tab of ['dashboard', 'cinemas', 'halls', 'movies', 'showtimes', 'genres', 'seats']; track tab) {
+      <button
+        class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+        [class.bg-cine-red]="activeTab() === tab"
+        [class.text-white]="activeTab() === tab"
+        [class.bg-cine-surface]="activeTab() !== tab"
+        [class.text-cine-gray-light]="activeTab() !== tab"
+        (click)="setTab($any(tab))"
+      >
+        {{ tab | titlecase }}
+      </button>
+    }
+  </div>
+
+  @switch (activeTab()) {
+    @case ('dashboard') {
+      @if (stats(); as s) {
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div class="card-cine text-center">
+            <p class="text-cine-gray-light text-sm">Movies</p>
+            <p class="text-3xl font-bold text-white">{{ s.totalMovies }}</p>
+          </div>
+          <div class="card-cine text-center">
+            <p class="text-cine-gray-light text-sm">Users</p>
+            <p class="text-3xl font-bold text-white">{{ s.totalUsers }}</p>
+          </div>
+          <div class="card-cine text-center">
+            <p class="text-cine-gray-light text-sm">Tickets Sold</p>
+            <p class="text-3xl font-bold text-white">{{ s.totalTicketsSold }}</p>
+          </div>
+          <div class="card-cine text-center">
+            <p class="text-cine-gray-light text-sm">Revenue</p>
+            <p class="text-3xl font-bold text-cine-red">${{ s.totalRevenue | number: '1.2-2' }}</p>
+          </div>
+        </div>
+        <div class="grid gap-6 lg:grid-cols-2">
+          <div class="card-cine">
+            <h3 class="text-white font-semibold mb-4">Top Movies</h3>
+            <ul class="space-y-2 text-sm">
+              @for (m of s.topMovies; track m.movieName) {
+                <li class="flex justify-between text-cine-gray-light">
+                  <span>{{ m.movieName }}</span>
+                  <span class="text-white">{{ m.ticketsSold }} sold</span>
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="card-cine">
+            <h3 class="text-white font-semibold mb-4">Top Genres</h3>
+            <ul class="space-y-2 text-sm">
+              @for (g of s.topGenres; track g.genreName) {
+                <li class="flex justify-between text-cine-gray-light">
+                  <span>{{ g.genreName }}</span>
+                  <span class="text-white">{{ g.count }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="card-cine">
+            <h3 class="text-white font-semibold mb-4">Recent Bookings</h3>
+            <ul class="space-y-2 text-sm">
+              @for (b of s.recentBookings; track b.bookingId) {
+                <li class="flex justify-between text-cine-gray-light">
+                  <span>#{{ b.bookingId }}</span>
+                  <span class="text-cine-red">${{ b.totalPrice | number: '1.2-2' }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="card-cine">
+            <h3 class="text-white font-semibold mb-4">Revenue (7 days)</h3>
+            <ul class="space-y-2 text-sm">
+              @for (r of s.revenueLast7Days; track r.date) {
+                <li class="flex justify-between text-cine-gray-light">
+                  <span>{{ r.date }}</span>
+                  <span class="text-white">${{ r.revenue | number: '1.2-2' }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-cine-gray-light">
+          Occupancy: {{ s.occupancyRatePercentage | number: '1.1-1' }}%
+        </p>
+      }
+    }
+
+    @case ('cinemas') {
+      <div class="grid gap-8 lg:grid-cols-2">
+        <form [formGroup]="cinemaForm" (ngSubmit)="submitCinema()" class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">{{ editingCinemaId() ? 'Edit' : 'Create' }} Cinema</h3>
+          <input formControlName="name" placeholder="Name" class="input-dark" />
+          <input formControlName="location" placeholder="Location" class="input-dark" />
+          <button type="submit" class="btn-primary" [disabled]="cinemaForm.invalid">
+            {{ editingCinemaId() ? 'Update' : 'Create' }}
+          </button>
+        </form>
+        <ul class="space-y-2">
+          @for (c of cinemas(); track c.id) {
+            <li class="card-cine text-sm flex justify-between items-center gap-2">
+              <span>
+                <span class="text-white font-medium">{{ c.name }}</span>
+                <span class="text-cine-gray-light"> — {{ c.location }}</span>
+              </span>
+              <span class="flex gap-2 shrink-0">
+                <button type="button" class="text-xs text-cine-gray-light hover:text-white" (click)="editCinema(c)">Edit</button>
+                <button type="button" class="text-xs text-cine-red" (click)="deleteCinema(c.id)">Delete</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @case ('halls') {
+      <div class="grid gap-8 lg:grid-cols-2">
+        <form [formGroup]="hallForm" (ngSubmit)="submitHall()" class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">{{ editingHallId() ? 'Edit' : 'Create' }} Hall</h3>
+          <select formControlName="cinemaId" class="input-dark" (change)="onCinemaChange()">
+            <option [value]="0" disabled>Select cinema</option>
+            @for (c of cinemas(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          <input formControlName="name" placeholder="Hall name" class="input-dark" />
+          <input formControlName="capacity" type="number" placeholder="Capacity" class="input-dark" />
+          <button type="submit" class="btn-primary" [disabled]="hallForm.invalid">
+            {{ editingHallId() ? 'Update' : 'Create' }}
+          </button>
+        </form>
+        <ul class="space-y-2">
+          @for (h of halls(); track h.id) {
+            <li class="card-cine text-sm flex justify-between items-center gap-2">
+              <span>
+                <span class="text-white font-medium">{{ h.name }}</span>
+                <span class="text-cine-gray-light"> — {{ h.capacity }} seats</span>
+              </span>
+              <span class="flex gap-2 shrink-0">
+                <button type="button" class="text-xs text-cine-gray-light hover:text-white" (click)="editHall(h)">Edit</button>
+                <button type="button" class="text-xs text-cine-red" (click)="deleteHall(h.id)">Delete</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @case ('movies') {
+      <div class="grid gap-8 lg:grid-cols-2">
+        <form [formGroup]="movieForm" (ngSubmit)="submitMovie()" class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">{{ editingMovieId() ? 'Edit' : 'Create' }} Movie</h3>
+          <input formControlName="title" placeholder="Title" class="input-dark" />
+          <textarea formControlName="description" placeholder="Description" class="input-dark" rows="3"></textarea>
+          <input formControlName="durationInMinutes" type="number" placeholder="Duration (min)" class="input-dark" />
+          <input formControlName="posterUrl" placeholder="Poster URL" class="input-dark" />
+          <input formControlName="language" placeholder="Language" class="input-dark" />
+          <input formControlName="releaseDate" type="date" class="input-dark" />
+          <input formControlName="trailerUrl" placeholder="Trailer URL" class="input-dark" />
+          <input formControlName="genreIds" placeholder="Genre IDs (comma-separated)" class="input-dark" />
+          <div>
+            <label class="block text-sm text-cine-gray-light mb-1">Upload Poster</label>
+            <input type="file" accept="image/*" (change)="onPosterSelected($event)" class="text-sm text-cine-gray-light" />
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="movieForm.invalid">
+            {{ editingMovieId() ? 'Update' : 'Create' }} Movie
+          </button>
+        </form>
+        <ul class="space-y-2">
+          @for (m of movies(); track m.id) {
+            <li class="card-cine text-sm flex justify-between items-center gap-2">
+              <span class="text-white font-medium">{{ m.title }}</span>
+              <span class="flex gap-2 shrink-0">
+                <button type="button" class="text-xs text-cine-gray-light hover:text-white" (click)="editMovie(m)">Edit</button>
+                <button type="button" class="text-xs text-cine-red" (click)="deleteMovie(m.id)">Delete</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @case ('showtimes') {
+      <div class="grid gap-8 lg:grid-cols-2">
+        <form [formGroup]="showtimeForm" (ngSubmit)="submitShowtime()" class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">{{ editingShowtimeId() ? 'Edit' : 'Create' }} Showtime</h3>
+          <select formControlName="movieId" class="input-dark">
+            <option [value]="0" disabled>Select movie</option>
+            @for (m of movies(); track m.id) {
+              <option [value]="m.id">{{ m.title }}</option>
+            }
+          </select>
+          <select formControlName="hallId" class="input-dark">
+            <option [value]="0" disabled>Select hall</option>
+            @for (h of halls(); track h.id) {
+              <option [value]="h.id">{{ h.name }}</option>
+            }
+          </select>
+          <input formControlName="startTime" type="datetime-local" class="input-dark" />
+          <input formControlName="ticketPrice" type="number" placeholder="Ticket price" class="input-dark" />
+          <button type="submit" class="btn-primary" [disabled]="showtimeForm.invalid">
+            {{ editingShowtimeId() ? 'Update' : 'Create' }} Showtime
+          </button>
+        </form>
+        <ul class="space-y-2">
+          @for (st of showtimes(); track st.id) {
+            <li class="card-cine text-sm flex justify-between items-center gap-2">
+              <span class="text-cine-gray-light">
+                #{{ st.id }} — Movie {{ st.movieId }} — {{ st.ticketPrice }} EGP
+              </span>
+              <span class="flex gap-2 shrink-0">
+                <button type="button" class="text-xs text-cine-gray-light hover:text-white" (click)="editShowtime(st)">Edit</button>
+                <button type="button" class="text-xs text-cine-red" (click)="deleteShowtime(st.id)">Delete</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @case ('genres') {
+      <div class="grid gap-8 lg:grid-cols-2">
+        <form [formGroup]="genreForm" (ngSubmit)="submitGenre()" class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">{{ editingGenreId() ? 'Edit' : 'Create' }} Genre</h3>
+          <input formControlName="name" placeholder="Genre name" class="input-dark" />
+          <button type="submit" class="btn-primary" [disabled]="genreForm.invalid">
+            {{ editingGenreId() ? 'Update' : 'Create' }}
+          </button>
+        </form>
+        <ul class="space-y-2">
+          @for (g of genres(); track g.id) {
+            <li class="card-cine text-sm flex justify-between items-center gap-2">
+              <span class="text-white">{{ g.name }}</span>
+              <span class="flex gap-2 shrink-0">
+                <button type="button" class="text-xs text-cine-gray-light hover:text-white" (click)="editGenre(g)">Edit</button>
+                <button type="button" class="text-xs text-cine-red" (click)="deleteGenre(g.id)">Delete</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @case ('seats') {
+      <div class="grid gap-8 lg:grid-cols-2">
+        <form [formGroup]="seatsForm" (ngSubmit)="generateSeats()" class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">Generate Seats</h3>
+          <select formControlName="hallId" class="input-dark">
+            <option [value]="0" disabled>Select hall</option>
+            @for (h of halls(); track h.id) {
+              <option [value]="h.id">{{ h.name }}</option>
+            }
+          </select>
+          <input formControlName="capacity" type="number" placeholder="Capacity" class="input-dark" />
+          <button type="submit" class="btn-primary" [disabled]="seatsForm.invalid">Generate</button>
+        </form>
+        <div class="card-cine space-y-4">
+          <h3 class="text-white font-semibold">View Hall Seats</h3>
+          <select [formControl]="viewHallId" class="input-dark">
+            <option [value]="0" disabled>Select hall</option>
+            @for (h of halls(); track h.id) {
+              <option [value]="h.id">{{ h.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn-secondary" (click)="viewHallSeats()">Load Seats</button>
+          @if (hallSeats().length > 0) {
+            <p class="text-sm text-cine-gray-light">{{ hallSeats().length }} seats</p>
+            <div class="flex flex-wrap gap-1 max-h-48 overflow-y-auto">
+              @for (seat of hallSeats(); track seat.id) {
+                <span
+                  class="px-1.5 py-0.5 text-xs rounded"
+                  [class.bg-cine-surface]="seat.isAvailable"
+                  [class.bg-cine-black-deep]="!seat.isAvailable"
+                >
+                  {{ seat.seatNumber }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

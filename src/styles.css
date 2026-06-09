@@ -1,3 +1,110 @@
-/* Global styles and Tailwind v4 entrypoint */
-
 @import 'tailwindcss';
+
+@theme {
+  --color-cine-black: #141414;
+  --color-cine-black-deep: #000000;
+  --color-cine-card: #181818;
+  --color-cine-surface: #222222;
+  --color-cine-red: #e50914;
+  --color-cine-red-dark: #b20710;
+  --color-cine-gray: #808080;
+  --color-cine-gray-light: #b3b3b3;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  --shadow-cine-glow: 0 0 15px rgba(229, 9, 20, 0.4);
+  --shadow-cine-card: 0 8px 30px rgba(229, 9, 20, 0.25);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cine-black text-white font-body antialiased min-h-screen;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-semibold tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-cine-red/40 text-white;
+  }
+}
+
+@layer components {
+  .input-dark {
+    @apply w-full bg-cine-surface border border-white/10 text-white px-4 py-2.5 rounded-md
+      placeholder:text-cine-gray-light/50
+      focus:outline-none focus:border-cine-red focus:ring-1 focus:ring-cine-red/50
+      transition-colors duration-200;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-cine-red text-white font-semibold
+      px-6 py-2.5 rounded-md
+      hover:bg-cine-red-dark
+      focus:outline-none focus:ring-2 focus:ring-cine-red focus:ring-offset-2 focus:ring-offset-cine-black
+      disabled:opacity-50 disabled:cursor-not-allowed
+      transition-colors duration-200 shadow-cine-glow;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center bg-cine-surface text-white font-medium
+      px-6 py-2.5 rounded-md border border-white/10
+      hover:border-cine-red/50 hover:bg-white/5
+      focus:outline-none focus:ring-2 focus:ring-cine-red/50
+      disabled:opacity-50 disabled:cursor-not-allowed
+      transition-colors duration-200;
+  }
+
+  .card-cine {
+    @apply bg-cine-card border border-white/5 rounded-lg p-5
+      hover:border-cine-red/20 transition-colors duration-200;
+  }
+
+  .section-title {
+    @apply text-2xl md:text-3xl font-bold text-white mb-1;
+  }
+
+  .section-subtitle {
+    @apply text-cine-gray-light text-sm;
+  }
+
+  .nav-link {
+    @apply text-cine-gray-light hover:text-white transition-colors duration-200;
+  }
+
+  .dropdown-panel {
+    @apply absolute bg-cine-card border border-white/10 shadow-2xl p-2 rounded-md z-50;
+  }
+
+  .dropdown-item {
+    @apply block w-full text-left p-2 text-cine-gray-light hover:text-white
+      hover:bg-cine-red/10 rounded transition-colors duration-200 cursor-pointer;
+  }
+
+  .seat-available {
+    @apply bg-cine-surface border border-white/10 text-white cursor-pointer
+      hover:border-cine-red hover:bg-cine-red/20 transition-colors duration-150;
+  }
+
+  .seat-selected {
+    @apply bg-cine-red border-cine-red text-white cursor-pointer shadow-cine-glow;
+  }
+
+  .seat-unavailable {
+    @apply bg-cine-black-deep/80 border border-white/5 text-cine-gray/50 cursor-not-allowed;
+  }
+
+  .showtime-option {
+    @apply flex items-center gap-3 p-4 bg-cine-card border border-white/5 rounded-lg cursor-pointer
+      has-[:checked]:border-cine-red has-[:checked]:bg-cine-red/10
+      hover:border-cine-red/40 transition-colors duration-200;
+  }
+}

@@ -1,0 +1,35 @@
+<section class="px-4 md:px-12 py-8 max-w-xl mx-auto">
+  <div class="mb-8">
+    <h1 class="section-title">My Profile</h1>
+    <p class="section-subtitle">Manage your account details</p>
+  </div>
+
+  @if (message()) {
+    <p class="mb-4 text-sm text-green-400">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="mb-4 text-sm text-cine-red">{{ error() }}</p>
+  }
+
+  @if (profile(); as p) {
+    <div class="card-cine mb-6 space-y-2 text-sm">
+      <p><span class="text-cine-gray-light">Username:</span> <span class="text-white">{{ p.username }}</span></p>
+      <p><span class="text-cine-gray-light">Email:</span> <span class="text-white">{{ p.email }}</span></p>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="card-cine space-y-4">
+      <h2 class="text-white font-semibold">Edit Profile</h2>
+      <div>
+        <label class="block text-sm text-cine-gray-light mb-1">First Name</label>
+        <input formControlName="firstName" class="input-dark" />
+      </div>
+      <div>
+        <label class="block text-sm text-cine-gray-light mb-1">Last Name</label>
+        <input formControlName="lastName" class="input-dark" />
+      </div>
+      <button type="submit" class="btn-primary" [disabled]="profileForm.invalid">Save Changes</button>
+    </form>
+  } @else if (loading()) {
+    <p class="text-cine-gray-light animate-pulse">Loading profile...</p>
+  }
+</section>

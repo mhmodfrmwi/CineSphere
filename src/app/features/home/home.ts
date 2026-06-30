@@ -7,13 +7,14 @@ import { Api } from '../../core/services/api/apiService/api';
 import { AuthService } from '../../core/services/api/authService/auth-service';
 import { Movie } from '../../core/models/movie';
 import { Genre } from '../../core/models/Genre';
-import { TopMovie } from '../../core/models/Dashboard';
+import { AssetUrlPipe } from '../../core/pipes/asset-url-pipe';
+import { SafeUrlPipe } from '../../core/pipes/safe-url-pipe';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc' | 'duration';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, AssetUrlPipe, SafeUrlPipe],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -36,7 +37,6 @@ export class Home implements OnInit {
 
   movies = signal<Movie[]>([]);
   genres = signal<Genre[]>([]);
-  trending = signal<TopMovie[]>([]);
   loading = signal(true);
   error = signal(false);
 
@@ -62,14 +62,7 @@ export class Home implements OnInit {
       .slice(0, 10),
   );
 
-  trendingMovies = computed(() => {
-    const top = this.trending();
-    const all = this.movies();
-    return top
-      .map((t) => all.find((m) => m.title.toLowerCase() === t.movieName?.toLowerCase()))
-      .filter((m): m is Movie => !!m)
-      .slice(0, 8);
-  });
+  trendingMovies = computed(() => this.newReleases().slice(0, 8));
 
   sortedMovies = computed(() => {
     const list = [...this.movies()];
@@ -123,10 +116,6 @@ export class Home implements OnInit {
 
     this.apiService.getAllGenres().subscribe({
       next: (data) => this.genres.set(data),
-    });
-
-    this.apiService.getDashboardStats().subscribe({
-      next: (stats) => this.trending.set(stats.topMovies ?? []),
     });
   }
 

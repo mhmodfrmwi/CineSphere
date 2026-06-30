@@ -4,4 +4,6 @@ export interface BookingDTO {
   totalPrice: number;
   showtimeId: number;
   seatIds: number[];
+  seatLabels: string[];
+  status?: string;
 }

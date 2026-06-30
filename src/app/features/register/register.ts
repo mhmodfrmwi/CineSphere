@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/api/authService/auth-service';
+import { parseApiError } from '../../core/utils/api-error';
 import { RegisterDTO } from '../../core/models/RegisterDTO';
 
 @Component({
@@ -29,7 +30,7 @@ export class Register {
     const data = this.registerForm.value as RegisterDTO;
     this.authService.register(data).subscribe({
       next: () => this.router.navigate(['/login']),
-      error: () => (this.errorMessage = 'Registration failed. Please try again.'),
+      error: (err) => (this.errorMessage = parseApiError(err, 'Registration failed. Please try again.')),
     });
   }
 }

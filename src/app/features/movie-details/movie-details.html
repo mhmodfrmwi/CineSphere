@@ -1,7 +1,7 @@
 @if (movie(); as m) {
   <div class="relative">
     <div class="absolute inset-0 h-[480px] overflow-hidden pointer-events-none">
-      <img [src]="m.posterUrl" [alt]="m.title" class="w-full h-full object-cover opacity-30 blur-sm scale-110" />
+      <img [src]="m.posterUrl | assetUrl" [alt]="m.title" class="w-full h-full object-cover opacity-30 blur-sm scale-110" />
       <div class="absolute inset-0 bg-gradient-to-t from-cine-black via-cine-black/80 to-cine-black/40"></div>
       <div class="absolute inset-0 bg-gradient-to-r from-cine-black via-cine-black/60 to-transparent"></div>
     </div>
@@ -9,7 +9,7 @@
     <section class="relative px-4 md:px-12 pt-8 pb-12 max-w-[1920px] mx-auto">
       <div class="flex flex-col md:flex-row gap-8 md:gap-12">
         <div class="shrink-0 mx-auto md:mx-0">
-          <img [src]="m.posterUrl" [alt]="m.title" class="w-56 md:w-72 rounded-lg shadow-cine-card ring-1 ring-white/10" />
+          <img [src]="m.posterUrl | assetUrl" [alt]="m.title" class="w-56 md:w-72 rounded-lg shadow-cine-card ring-1 ring-white/10" />
         </div>
 
         <div class="flex-1 text-center md:text-left">
@@ -23,49 +23,78 @@
               <span>Rating: <span class="text-cine-red">{{ averageRating() | number: '1.1-1' }}/5</span></span>
             }
           </div>
-          @if (m.trailerUrl) {
-            <a [href]="m.trailerUrl" target="_blank" rel="noopener" class="btn-secondary mt-4 inline-flex text-sm">
-              Watch Trailer
-            </a>
+          @if (m.trailerUrl; as trailer) {
+            @if (trailer | safeUrl; as safeTrailer) {
+              <a [href]="safeTrailer" target="_blank" rel="noopener noreferrer" class="btn-secondary mt-4 inline-flex text-sm">
+                Watch Trailer
+              </a>
+            }
           }
         </div>
       </div>
 
       <div class="mt-12">
         <h2 class="section-title mb-1">Showtimes</h2>
-        <p class="section-subtitle mb-6">Select a screening to choose your seats</p>
+        <p class="section-subtitle mb-6">Pick a day, then choose your screening</p>
 
         @if (bookingSuccess()) {
           <p class="mb-4 text-sm text-green-400">Booking confirmed successfully!</p>
         }
 
-        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl">
-          @for (showtime of showtimes(); track showtime.id) {
-            <li>
-              <label class="showtime-option">
-                <input
-                  type="radio"
-                  name="showtime"
-                  class="accent-cine-red w-4 h-4 shrink-0"
-                  (click)="selectedShowtime.set(showtime)"
-                />
-                <div>
-                  <span class="block text-white font-medium">{{ showtime.startTime | date: 'medium' }}</span>
-                  <span class="text-cine-red font-semibold">{{ showtime.ticketPrice }} EGP</span>
-                  <span class="block text-cine-gray-light text-xs mt-0.5">{{ hallName(showtime.hallId) }}</span>
-                </div>
-              </label>
-            </li>
-          } @empty {
-            <li class="col-span-full text-cine-gray-light py-8 text-center">No showtimes available.</li>
-          }
-        </ul>
+        @if (hasUpcomingShowtimes()) {
+          <div class="showtime-picker max-w-3xl">
+            <div
+              class="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-1 px-1 snap-x snap-mandatory"
+              role="tablist"
+              aria-label="Showtime dates"
+            >
+              @for (day of showtimeDays(); track day.dateKey) {
+                <button
+                  type="button"
+                  role="tab"
+                  class="showtime-day-tab snap-start shrink-0"
+                  [class.showtime-day-tab-active]="selectedDateKey() === day.dateKey"
+                  [attr.aria-selected]="selectedDateKey() === day.dateKey"
+                  (click)="selectDate(day.dateKey)"
+                >
+                  <span class="text-xs uppercase tracking-wide opacity-80">{{ day.weekday }}</span>
+                  <span class="text-2xl font-display leading-none">{{ day.dayNumber }}</span>
+                  <span class="text-xs font-medium">{{ day.label }}</span>
+                  <span class="text-[10px] text-cine-gray-light">{{ day.showtimes.length }} show{{ day.showtimes.length === 1 ? '' : 's' }}</span>
+                </button>
+              }
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2" role="tabpanel">
+              @for (showtime of selectedDayShowtimes(); track showtime.id) {
+                <button
+                  type="button"
+                  class="showtime-slot"
+                  [class.showtime-slot-active]="selectedShowtime()?.id === showtime.id"
+                  [attr.aria-pressed]="selectedShowtime()?.id === showtime.id"
+                  (click)="selectShowtime(showtime)"
+                >
+                  <span class="showtime-slot-time">{{ showtime.startTime | date: 'shortTime' }}</span>
+                  <span class="showtime-slot-meta">{{ hallLocation(showtime.hallId) }}</span>
+                  <span class="showtime-slot-price">{{ showtime.ticketPrice }} EGP</span>
+                </button>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="card-cine max-w-xl text-center py-10 px-6">
+            <p class="text-white font-medium mb-1">No upcoming showtimes</p>
+            <p class="text-cine-gray-light text-sm">Check back later for new screenings.</p>
+          </div>
+        }
       </div>
 
       @if (selectedShowtime(); as st) {
         <div class="mt-12">
-          <h3 class="section-title text-xl mb-1">Select Seats — {{ st.startTime | date: 'short' }}</h3>
+          <h3 class="section-title text-xl mb-1">Select Seats — {{ st.startTime | date: 'EEEE, MMM d' }} at {{ st.startTime | date: 'shortTime' }}</h3>
           <p class="section-subtitle mb-6">
+            <span class="text-cine-gray-light">{{ hallLocation(st.hallId) }}</span>
+            <span class="mx-2 text-cine-gray">·</span>
             <span class="inline-flex items-center gap-4 flex-wrap">
               <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-cine-surface border border-white/10"></span> Available</span>
               <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-cine-red"></span> Selected</span>
@@ -77,15 +106,19 @@
             <div class="w-3/4 mx-auto h-1 bg-cine-gray/30 rounded-full mb-6"></div>
             <div class="grid grid-cols-10 gap-1.5 sm:gap-2">
               @for (seat of seats(); track seat.id) {
-                <div
-                  class="p-1.5 sm:p-2 rounded text-center text-xs sm:text-sm font-medium select-none"
+                <button
+                  type="button"
+                  class="p-1.5 sm:p-2 rounded text-center text-xs sm:text-sm font-medium"
                   [class.seat-available]="seat.isAvailable && !selectedSeatsIds().includes(seat.id)"
                   [class.seat-unavailable]="!seat.isAvailable"
                   [class.seat-selected]="selectedSeatsIds().includes(seat.id)"
+                  [disabled]="!seat.isAvailable"
+                  [attr.aria-pressed]="selectedSeatsIds().includes(seat.id)"
+                  [attr.aria-label]="'Seat ' + seat.seatNumber + (seat.isAvailable ? '' : ' unavailable')"
                   (click)="reserveSeat(seat.id)"
                 >
                   {{ seat.seatNumber }}
-                </div>
+                </button>
               }
             </div>
           </div>
@@ -103,9 +136,16 @@
                 }
               </select>
             </div>
-            <button class="btn-primary" (click)="createBooking()" [disabled]="selectedSeatsIds().length === 0">
-              Book {{ selectedSeatsIds().length }} Seat{{ selectedSeatsIds().length === 1 ? '' : 's' }}
+            <button
+              class="btn-primary"
+              (click)="createBooking()"
+              [disabled]="selectedSeatsIds().length === 0 || bookingInProgress()"
+            >
+              {{ bookingInProgress() ? 'Booking...' : 'Book ' + selectedSeatsIds().length + ' Seat' + (selectedSeatsIds().length === 1 ? '' : 's') }}
             </button>
+            @if (bookingError()) {
+              <p class="text-sm text-cine-red mt-2" role="alert">{{ bookingError() }}</p>
+            }
           </div>
         </div>
       }
@@ -151,7 +191,7 @@
                 <span class="text-white font-medium">{{ review.userName }}</span>
                 <div class="flex items-center gap-2">
                   <span class="text-cine-red text-sm">{{ review.rating }}/5</span>
-                  @if (isLoggedIn()) {
+                  @if (canManageReview(review)) {
                     <button type="button" class="text-xs text-cine-gray-light hover:text-white" (click)="startEditReview(review)">Edit</button>
                     <button type="button" class="text-xs text-cine-red hover:underline" (click)="deleteReview(review.id)">Delete</button>
                   }
@@ -167,8 +207,13 @@
       </div>
     </section>
   </div>
-} @else {
+} @else if (loading()) {
   <div class="flex items-center justify-center min-h-[50vh]">
     <p class="text-cine-gray-light animate-pulse">Loading movie details...</p>
+  </div>
+} @else if (error()) {
+  <div class="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+    <p class="text-cine-gray-light">Movie not found or could not be loaded.</p>
+    <a routerLink="/" class="btn-primary text-sm">Back to Home</a>
   </div>
 }

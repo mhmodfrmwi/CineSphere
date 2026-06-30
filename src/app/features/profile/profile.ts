@@ -23,6 +23,10 @@ export class Profile implements OnInit {
   });
 
   ngOnInit() {
+    this.loadProfile();
+  }
+
+  private loadProfile() {
     this.authService.getProfile().subscribe({
       next: (data) => {
         this.profile.set(data);
@@ -43,7 +47,7 @@ export class Profile implements OnInit {
     this.authService.updateProfile(this.profileForm.value as { firstName: string; lastName: string }).subscribe({
       next: () => {
         this.message.set('Profile updated successfully.');
-        this.ngOnInit();
+        this.loadProfile();
       },
       error: () => this.error.set('Failed to update profile.'),
     });

@@ -107,4 +107,36 @@
       has-[:checked]:border-cine-red has-[:checked]:bg-cine-red/10
       hover:border-cine-red/40 transition-colors duration-200;
   }
+
+  .showtime-day-tab {
+    @apply flex flex-col items-center gap-1 min-w-[5.5rem] px-4 py-3 rounded-lg
+      bg-cine-card border border-white/10 text-cine-gray-light
+      hover:border-cine-red/40 hover:text-white transition-colors duration-200;
+  }
+
+  .showtime-day-tab-active {
+    @apply border-cine-red bg-cine-red/15 text-white shadow-cine-glow;
+  }
+
+  .showtime-slot {
+    @apply flex flex-col items-start gap-1 p-4 rounded-lg text-left
+      bg-cine-card border border-white/10
+      hover:border-cine-red/50 transition-colors duration-200;
+  }
+
+  .showtime-slot-active {
+    @apply border-cine-red bg-cine-red/10 ring-1 ring-cine-red/40;
+  }
+
+  .showtime-slot-time {
+    @apply text-2xl font-display tracking-wide text-white leading-none;
+  }
+
+  .showtime-slot-meta {
+    @apply text-sm text-cine-gray-light line-clamp-2;
+  }
+
+  .showtime-slot-price {
+    @apply text-cine-red font-semibold text-sm mt-1;
+  }
 }

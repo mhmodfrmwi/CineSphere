@@ -1,5 +1,6 @@
 export interface Review {
   id: number;
+  appUserId: string;
   userName: string;
   rating: number;
   comment: string;

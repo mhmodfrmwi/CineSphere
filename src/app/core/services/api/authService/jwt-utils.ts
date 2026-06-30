@@ -24,3 +24,13 @@ export function tokenHasAdminRole(token: string | null): boolean {
   if (!payload) return false;
   return normalizeRoles(payload).some((role) => role.toLowerCase() === 'admin');
 }
+
+export function getUserIdFromToken(token: string | null): string | null {
+  if (!token) return null;
+  const payload = decodeJwtPayload(token);
+  if (!payload) return null;
+  const id = payload['sub']
+    ?? payload['nameid']
+    ?? payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+  return id ? String(id) : null;
+}

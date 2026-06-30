@@ -13,6 +13,7 @@ export class Cinemas implements OnInit {
   private api = inject(Api);
   cinemas = signal<Cinema[]>([]);
   loading = signal(true);
+  error = signal(false);
 
   ngOnInit() {
     this.api.getCinemas().subscribe({
@@ -20,7 +21,10 @@ export class Cinemas implements OnInit {
         this.cinemas.set(data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.error.set(true);
+        this.loading.set(false);
+      },
     });
   }
 }

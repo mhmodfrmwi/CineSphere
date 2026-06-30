@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { tokenHasAdminRole } from './jwt-utils';
+import { environment } from '../../../../../environments/environment';
+import { tokenHasAdminRole, getUserIdFromToken } from './jwt-utils';
 import { LoginDTO } from '../../../models/LoginDTO';
 import { LoginResponseDTO } from '../../../models/LoginResponseDTO';
 import { RegisterDTO } from '../../../models/RegisterDTO';
@@ -12,10 +13,11 @@ import { tap } from 'rxjs';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private baseUrl = 'https://localhost:7262/api/auth';
+  private readonly baseUrl = `${environment.apiUrl}/auth`;
   currentUserToken = signal<string | null>(localStorage.getItem('token'));
   isLoggedIn = computed(() => !!this.currentUserToken());
   isAdmin = computed(() => tokenHasAdminRole(this.currentUserToken()));
+  currentUserId = computed(() => getUserIdFromToken(this.currentUserToken()));
   login(loginData: LoginDTO) {
     return this.http.post<LoginResponseDTO>(`${this.baseUrl}/login`, loginData).pipe(
       tap((response) => {

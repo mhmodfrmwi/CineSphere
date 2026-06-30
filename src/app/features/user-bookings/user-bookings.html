@@ -4,12 +4,18 @@
     <p class="section-subtitle">Your ticket reservations and showtime details</p>
   </div>
 
-  @if (bookings().length > 0) {
+  @if (error()) {
+    <p class="text-cine-red text-sm">{{ error() }}</p>
+  } @else if (loading()) {
+    <p class="text-cine-gray-light animate-pulse">Loading bookings...</p>
+  } @else if (bookings().length > 0) {
     <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       @for (booking of bookings(); track booking.bookingId) {
         <li class="card-cine">
           <div class="flex items-start justify-between mb-4">
-            <span class="text-xs font-medium uppercase tracking-wider text-cine-red">Booking</span>
+            <span class="text-xs font-medium uppercase tracking-wider" [class.text-cine-red]="!isCanceled(booking)" [class.text-cine-gray-light]="isCanceled(booking)">
+              {{ isCanceled(booking) ? 'Canceled' : 'Booking' }}
+            </span>
             <a [routerLink]="['/bookings', booking.bookingId]" class="text-xs text-cine-red hover:underline">
               #{{ booking.bookingId }} →
             </a>
@@ -17,11 +23,11 @@
           <dl class="space-y-2 text-sm">
             <div class="flex justify-between gap-4">
               <dt class="text-cine-gray-light">Date</dt>
-              <dd class="text-white font-medium">{{ booking.bookingDate }}</dd>
+              <dd class="text-white font-medium">{{ booking.bookingDate | date: 'medium' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
               <dt class="text-cine-gray-light">Total</dt>
-              <dd class="text-cine-red font-semibold">${{ booking.totalPrice.toFixed(2) }}</dd>
+              <dd class="text-cine-red font-semibold">{{ booking.totalPrice | number: '1.2-2' }} EGP</dd>
             </div>
             <div class="flex justify-between gap-4">
               <dt class="text-cine-gray-light">Showtime</dt>
@@ -30,9 +36,9 @@
             <div>
               <dt class="text-cine-gray-light mb-1">Seats</dt>
               <dd class="flex flex-wrap gap-1.5">
-                @for (seatId of booking.seatIds; track seatId) {
+                @for (label of seatLabels(booking); track label) {
                   <span class="px-2 py-0.5 rounded bg-cine-surface text-xs text-white border border-white/10">
-                    {{ seatId }}
+                    {{ label }}
                   </span>
                 }
               </dd>

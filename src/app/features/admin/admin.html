@@ -44,7 +44,7 @@
           </div>
           <div class="card-cine text-center">
             <p class="text-cine-gray-light text-sm">Revenue</p>
-            <p class="text-3xl font-bold text-cine-red">${{ s.totalRevenue | number: '1.2-2' }}</p>
+            <p class="text-3xl font-bold text-cine-red">{{ s.totalRevenue | number: '1.2-2' }} EGP</p>
           </div>
         </div>
         <div class="grid gap-6 lg:grid-cols-2">
@@ -76,7 +76,7 @@
               @for (b of s.recentBookings; track b.bookingId) {
                 <li class="flex justify-between text-cine-gray-light">
                   <span>#{{ b.bookingId }}</span>
-                  <span class="text-cine-red">${{ b.totalPrice | number: '1.2-2' }}</span>
+                  <span class="text-cine-red">{{ b.totalPrice | number: '1.2-2' }} EGP</span>
                 </li>
               }
             </ul>
@@ -87,7 +87,7 @@
               @for (r of s.revenueLast7Days; track r.date) {
                 <li class="flex justify-between text-cine-gray-light">
                   <span>{{ r.date }}</span>
-                  <span class="text-white">${{ r.revenue | number: '1.2-2' }}</span>
+                  <span class="text-white">{{ r.revenue | number: '1.2-2' }} EGP</span>
                 </li>
               }
             </ul>
@@ -198,11 +198,14 @@
         <form [formGroup]="showtimeForm" (ngSubmit)="submitShowtime()" class="card-cine space-y-4">
           <h3 class="text-white font-semibold">{{ editingShowtimeId() ? 'Edit' : 'Create' }} Showtime</h3>
           <select formControlName="movieId" class="input-dark">
-            <option [value]="0" disabled>Select movie</option>
+            <option [ngValue]="0" disabled>Select movie</option>
             @for (m of movies(); track m.id) {
-              <option [value]="m.id">{{ m.title }}</option>
+              <option [ngValue]="m.id">{{ m.title }}</option>
             }
           </select>
+          @if (movies().length === 0) {
+            <p class="text-sm text-cine-gray-light">No movies loaded yet. Refresh the page or check that the API is running.</p>
+          }
           <select formControlName="hallId" class="input-dark">
             <option [value]="0" disabled>Select hall</option>
             @for (h of halls(); track h.id) {

@@ -1,11 +1,11 @@
 export enum PaymentMethod {
-  CreditCard = 0,
-  DebitCard = 1,
-  Cash = 2,
+  Visa = 0,
+  Cash = 1,
+  Fawry = 2,
 }
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  [PaymentMethod.CreditCard]: 'Credit Card',
-  [PaymentMethod.DebitCard]: 'Debit Card',
+  [PaymentMethod.Visa]: 'Visa',
   [PaymentMethod.Cash]: 'Cash',
+  [PaymentMethod.Fawry]: 'Fawry',
 };

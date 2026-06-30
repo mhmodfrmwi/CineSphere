@@ -6,6 +6,8 @@
 
   @if (loading()) {
     <p class="text-cine-gray-light animate-pulse">Loading cinemas...</p>
+  } @else if (error()) {
+    <p class="text-cine-red text-center py-12">Unable to load cinemas. Please try again later.</p>
   } @else if (cinemas().length > 0) {
     <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       @for (cinema of cinemas(); track cinema.id) {

@@ -1,5 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
 import { Movie, PaginatedMovies } from '../../../models/movie';
 import { Showtime } from '../../../models/showtime';
 import { Seat } from '../../../models/Seat';
@@ -33,7 +35,7 @@ export interface MoviesQueryParams {
   providedIn: 'root',
 })
 export class Api {
-  private baseUrl = 'https://localhost:7262/api';
+  private readonly baseUrl = environment.apiUrl;
   private http = inject(HttpClient);
 
   getMovies(params?: MoviesQueryParams) {
@@ -43,6 +45,32 @@ export class Api {
     if (params?.search) httpParams = httpParams.set('Search', params.search);
     if (params?.genre) httpParams = httpParams.set('Genre', params.genre);
     return this.http.get<PaginatedMovies>(`${this.baseUrl}/movies`, { params: httpParams });
+  }
+
+  getAllMovies() {
+    return this.http.get<Movie[]>(`${this.baseUrl}/movies/all`);
+  }
+
+  /** Loads every movie by walking paginated results (works without /movies/all). */
+  getAllMoviesList(): Observable<Movie[]> {
+    const pageSize = 50;
+    return this.getMovies({ pageIndex: 1, pageSize }).pipe(
+      switchMap((first) => {
+        const totalPages = Math.max(1, Math.ceil(first.count / first.pageSize));
+        if (totalPages <= 1) {
+          return of(first.data ?? []);
+        }
+        const pageRequests = Array.from({ length: totalPages - 1 }, (_, index) =>
+          this.getMovies({ pageIndex: index + 2, pageSize }),
+        );
+        return forkJoin(pageRequests).pipe(
+          map((pages) => [
+            ...(first.data ?? []),
+            ...pages.flatMap((page) => page.data ?? []),
+          ]),
+        );
+      }),
+    );
   }
 
   getMovieById(id: number) {
@@ -64,7 +92,7 @@ export class Api {
   uploadPoster(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<string>(`${this.baseUrl}/movies/upload-poster`, formData);
+    return this.http.post<{ posterUrl: string }>(`${this.baseUrl}/movies/upload-poster`, formData);
   }
 
   getShowtimesByMovieId(movieId: number) {
@@ -116,23 +144,19 @@ export class Api {
   }
 
   getAllGenres() {
-    return this.http.get<Genre[]>(`${this.baseUrl}/Genre`);
-  }
-
-  getGenreById(id: number) {
-    return this.http.get<Genre>(`${this.baseUrl}/Genre/${id}`);
+    return this.http.get<Genre[]>(`${this.baseUrl}/genre`);
   }
 
   createGenre(name: string) {
-    return this.http.post(`${this.baseUrl}/Genre`, { name });
+    return this.http.post(`${this.baseUrl}/genre`, { name });
   }
 
   updateGenre(id: number, data: UpdateGenreDTO) {
-    return this.http.put(`${this.baseUrl}/Genre/${id}`, data);
+    return this.http.put(`${this.baseUrl}/genre/${id}`, data);
   }
 
   deleteGenre(id: number) {
-    return this.http.delete(`${this.baseUrl}/Genre/${id}`);
+    return this.http.delete(`${this.baseUrl}/genre/${id}`);
   }
 
   getReviewsByMovieId(movieId: number) {

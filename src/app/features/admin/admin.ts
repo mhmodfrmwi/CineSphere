@@ -46,7 +46,7 @@ export class Admin implements OnInit {
   hallForm = new FormGroup({
     name: new FormControl('', Validators.required),
     capacity: new FormControl(50, [Validators.required, Validators.min(1)]),
-    cinemaId: new FormControl(0, Validators.required),
+    cinemaId: new FormControl(0, [Validators.required, Validators.min(1)]),
   });
 
   movieForm = new FormGroup({
@@ -63,8 +63,8 @@ export class Admin implements OnInit {
   showtimeForm = new FormGroup({
     startTime: new FormControl('', Validators.required),
     ticketPrice: new FormControl(100, Validators.required),
-    movieId: new FormControl(0, Validators.required),
-    hallId: new FormControl(0, Validators.required),
+    movieId: new FormControl(0, [Validators.required, Validators.min(1)]),
+    hallId: new FormControl(0, [Validators.required, Validators.min(1)]),
   });
 
   genreForm = new FormGroup({
@@ -72,7 +72,7 @@ export class Admin implements OnInit {
   });
 
   seatsForm = new FormGroup({
-    hallId: new FormControl(0, Validators.required),
+    hallId: new FormControl(0, [Validators.required, Validators.min(1)]),
     capacity: new FormControl(50, [Validators.required, Validators.min(1)]),
   });
 
@@ -92,7 +92,7 @@ export class Admin implements OnInit {
     if (tab === 'dashboard') this.loadDashboard();
     if (tab === 'halls') this.loadHalls();
     if (tab === 'showtimes' || tab === 'seats') this.loadAllHalls();
-    if (tab === 'showtimes') this.loadAllShowtimes();
+    if (tab === 'movies' || tab === 'showtimes') this.loadAllMovies(tab === 'showtimes');
   }
 
   private clearEdits() {
@@ -105,8 +105,18 @@ export class Admin implements OnInit {
 
   private loadReferenceData() {
     this.api.getCinemas().subscribe({ next: (d) => this.cinemas.set(d) });
-    this.api.getMovies().subscribe({ next: (d) => this.movies.set(d.data) });
+    this.loadAllMovies();
     this.api.getAllGenres().subscribe({ next: (d) => this.genres.set(d) });
+  }
+
+  private loadAllMovies(reloadShowtimes = false) {
+    this.api.getAllMoviesList().subscribe({
+      next: (d) => {
+        this.movies.set(d);
+        if (reloadShowtimes) this.loadAllShowtimes();
+      },
+      error: () => this.error.set('Failed to load movies. Is the API running?'),
+    });
   }
 
   private loadDashboard() {
@@ -188,6 +198,7 @@ export class Admin implements OnInit {
   }
 
   deleteCinema(id: number) {
+    if (!confirm('Delete this cinema? This cannot be undone.')) return;
     this.api.deleteCinema(id).subscribe({
       next: () => {
         this.message.set('Cinema deleted.');
@@ -220,6 +231,7 @@ export class Admin implements OnInit {
   }
 
   deleteHall(id: number) {
+    if (!confirm('Delete this hall? This cannot be undone.')) return;
     this.api.deleteHall(id).subscribe({
       next: () => {
         this.message.set('Hall deleted.');
@@ -237,35 +249,47 @@ export class Admin implements OnInit {
   submitMovie() {
     if (!this.movieForm.valid) return;
     const raw = this.movieForm.value;
-    const data = {
+    const genreIds = this.parseGenreIds(raw.genreIds);
+    const buildPayload = (posterUrl?: string) => ({
       title: raw.title!,
       description: raw.description || undefined,
       durationInMinutes: raw.durationInMinutes ?? undefined,
-      posterUrl: raw.posterUrl || undefined,
+      posterUrl: posterUrl ?? raw.posterUrl ?? undefined,
       language: raw.language || undefined,
       releaseDate: raw.releaseDate ? new Date(raw.releaseDate).toISOString() : undefined,
       trailerUrl: raw.trailerUrl || undefined,
-      genreIds: this.parseGenreIds(raw.genreIds),
-    };
+      genreIds,
+    });
+
     const editId = this.editingMovieId();
-    const req = editId ? this.api.updateMovie(editId, data) : this.api.createMovie(data);
+    const req = editId
+      ? this.api.updateMovie(editId, buildPayload())
+      : this.api.createMovie(buildPayload());
+
     req.subscribe({
       next: (movie) => {
-        const afterSave = () => {
-          this.message.set(editId ? 'Movie updated.' : `Movie "${movie.title}" created.`);
+        const movieId = editId ?? movie.id;
+        const finish = (posterMessage?: string) => {
+          this.message.set(
+            posterMessage ?? (editId ? 'Movie updated.' : `Movie "${movie.title}" created.`),
+          );
           this.resetMovieForm();
-          this.api.getMovies().subscribe({ next: (d) => this.movies.set(d.data) });
+          this.loadAllMovies();
         };
+
         if (this.posterFile) {
           this.api.uploadPoster(this.posterFile).subscribe({
-            next: () => afterSave(),
-            error: () => {
-              this.message.set('Saved but poster upload failed.');
-              afterSave();
+            next: (upload) => {
+              const posterUrl = upload.posterUrl;
+              this.api.updateMovie(movieId, buildPayload(posterUrl)).subscribe({
+                next: () => finish(editId ? 'Movie updated with new poster.' : 'Movie created with poster.'),
+                error: () => finish('Movie saved but poster URL update failed.'),
+              });
             },
+            error: () => finish('Movie saved but poster upload failed.'),
           });
         } else {
-          afterSave();
+          finish();
         }
       },
       error: () => this.error.set('Movie operation failed.'),
@@ -286,10 +310,11 @@ export class Admin implements OnInit {
   }
 
   deleteMovie(id: number) {
+    if (!confirm('Delete this movie? This cannot be undone.')) return;
     this.api.deleteMovie(id).subscribe({
       next: () => {
         this.message.set('Movie deleted.');
-        this.api.getMovies().subscribe({ next: (d) => this.movies.set(d.data) });
+        this.loadAllMovies();
       },
       error: () => this.error.set('Failed to delete movie.'),
     });
@@ -337,6 +362,7 @@ export class Admin implements OnInit {
   }
 
   deleteShowtime(id: number) {
+    if (!confirm('Delete this showtime? This cannot be undone.')) return;
     this.api.deleteShowtime(id).subscribe({
       next: () => {
         this.message.set('Showtime deleted.');
@@ -368,6 +394,7 @@ export class Admin implements OnInit {
   }
 
   deleteGenre(id: number) {
+    if (!confirm('Delete this genre? This cannot be undone.')) return;
     this.api.deleteGenre(id).subscribe({
       next: () => {
         this.message.set('Genre deleted.');

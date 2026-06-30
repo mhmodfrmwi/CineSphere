@@ -5,7 +5,7 @@
     <div class="card-cine">
       <div class="flex items-start justify-between mb-6">
         <h1 class="section-title">Booking #{{ b.bookingId }}</h1>
-        <span class="text-cine-red font-semibold text-lg">${{ b.totalPrice.toFixed(2) }}</span>
+        <span class="text-cine-red font-semibold text-lg">{{ b.totalPrice | number: '1.2-2' }} EGP</span>
       </div>
 
       <dl class="space-y-4 text-sm">
@@ -20,7 +20,7 @@
           </div>
           <div class="flex justify-between gap-4 border-b border-white/5 pb-3">
             <dt class="text-cine-gray-light">Ticket Price</dt>
-            <dd class="text-white">{{ st.ticketPrice }} EGP</dd>
+            <dd class="text-white">{{ st.ticketPrice | number: '1.2-2' }} EGP</dd>
           </div>
         }
         @if (hall(); as h) {
@@ -32,9 +32,9 @@
         <div>
           <dt class="text-cine-gray-light mb-2">Seats</dt>
           <dd class="flex flex-wrap gap-2">
-            @for (seatId of b.seatIds; track seatId) {
+            @for (label of seatLabels(); track label) {
               <span class="px-3 py-1 rounded bg-cine-surface text-white border border-white/10 text-sm">
-                Seat {{ seatId }}
+                {{ label }}
               </span>
             }
           </dd>
@@ -45,13 +45,13 @@
         <p class="mt-4 text-sm" [class.text-green-400]="cancelled()" [class.text-cine-red]="!cancelled()">{{ message() }}</p>
       }
 
-      @if (!cancelled()) {
+      @if (!cancelled() && b.status !== 'Canceled') {
         <button type="button" class="btn-secondary mt-6 text-sm" (click)="cancelBooking()">Cancel Booking</button>
       }
     </div>
   } @else if (loading()) {
     <p class="text-cine-gray-light animate-pulse">Loading booking...</p>
   } @else if (error()) {
-    <p class="text-cine-red">Booking not found.</p>
+    <p class="text-cine-red">Booking not found or you do not have permission to view it.</p>
   }
 </section>

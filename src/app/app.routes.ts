@@ -11,6 +11,7 @@ import { Cinemas } from './features/cinemas/cinemas';
 import { CinemaDetail } from './features/cinemas/cinema-detail';
 import { Admin } from './features/admin/admin';
 import { Profile } from './features/profile/profile';
+import { NotFound } from './features/not-found/not-found';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -23,4 +24,5 @@ export const routes: Routes = [
   { path: 'bookings/:id', canActivate: [authGuard], component: BookingDetail },
   { path: 'profile', canActivate: [authGuard], component: Profile },
   { path: 'admin', canActivate: [adminGuard], component: Admin },
+  { path: '**', component: NotFound },
 ];

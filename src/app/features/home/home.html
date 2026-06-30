@@ -2,7 +2,7 @@
 @if (featuredMovie(); as hero) {
   <section class="relative h-[55vh] md:h-[70vh] min-h-[400px] overflow-hidden">
     <img
-      [src]="hero.posterUrl"
+      [src]="hero.posterUrl | assetUrl"
       [alt]="hero.title"
       class="absolute inset-0 w-full h-full object-cover object-top scale-105"
     />
@@ -24,8 +24,10 @@
       </div>
       <div class="flex flex-wrap gap-3">
         <a [routerLink]="['/movie', hero.id]" class="btn-primary">Book Tickets</a>
-        @if (hero.trailerUrl) {
-          <a [href]="hero.trailerUrl" target="_blank" rel="noopener" class="btn-secondary">Watch Trailer</a>
+        @if (hero.trailerUrl; as trailer) {
+          @if (trailer | safeUrl; as safeTrailer) {
+            <a [href]="safeTrailer" target="_blank" rel="noopener noreferrer" class="btn-secondary">Watch Trailer</a>
+          }
         }
       </div>
     </div>
@@ -42,7 +44,7 @@
         @for (movie of trendingMovies(); track movie.id) {
           <a [routerLink]="['/movie', movie.id]" class="movie-row-card group">
             <div class="relative overflow-hidden rounded-md aspect-[2/3] bg-cine-card ring-1 ring-white/5 group-hover:ring-cine-red/40 group-hover:scale-105 transition-all duration-300">
-              <img [src]="movie.posterUrl" [alt]="movie.title" class="w-full h-full object-cover" />
+              <img [src]="movie.posterUrl | assetUrl" [alt]="movie.title" class="w-full h-full object-cover" />
               <div class="absolute inset-0 bg-gradient-to-t from-cine-black/80 to-transparent"></div>
               <p class="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold line-clamp-2">{{ movie.title }}</p>
             </div>
@@ -60,7 +62,7 @@
         @for (movie of newReleases(); track movie.id) {
           <a [routerLink]="['/movie', movie.id]" class="movie-row-card group">
             <div class="relative overflow-hidden rounded-md aspect-[2/3] bg-cine-card ring-1 ring-white/5 group-hover:ring-cine-red/40 group-hover:scale-105 transition-all duration-300">
-              <img [src]="movie.posterUrl" [alt]="movie.title" class="w-full h-full object-cover" />
+              <img [src]="movie.posterUrl | assetUrl" [alt]="movie.title" class="w-full h-full object-cover" />
               <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-cine-red text-white uppercase">New</span>
               <div class="absolute inset-0 bg-gradient-to-t from-cine-black/80 to-transparent"></div>
               <p class="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold line-clamp-2">{{ movie.title }}</p>
@@ -168,7 +170,7 @@
             <div
               class="relative overflow-hidden rounded-md aspect-[2/3] bg-cine-card ring-1 ring-white/5 transition-all duration-300 ease-out group-hover:scale-105 group-hover:ring-cine-red/40 group-hover:shadow-[0_8px_30px_rgba(229,9,20,0.25)] group-hover:z-10"
             >
-              <img [src]="movie.posterUrl" [alt]="movie.title" class="w-full h-full object-cover" loading="lazy" />
+              <img [src]="movie.posterUrl | assetUrl" [alt]="movie.title" class="w-full h-full object-cover" loading="lazy" />
               <div class="absolute inset-0 bg-gradient-to-t from-cine-black via-cine-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity"></div>
 
               <div class="absolute top-2 left-2 flex flex-col gap-1">

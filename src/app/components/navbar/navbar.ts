@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/api/authService/auth-service';
 import { Genre } from '../../core/models/Genre';
@@ -10,7 +10,7 @@ import { Api } from '../../core/services/api/apiService/api';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar {
+export class Navbar implements OnInit {
   private authService = inject(AuthService);
   private apiService = inject(Api);
   private elementRef = inject(ElementRef);

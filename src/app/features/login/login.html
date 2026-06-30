@@ -36,6 +36,9 @@
       <button type="submit" class="btn-primary w-full py-3" [disabled]="loginForm.invalid">
         Sign In
       </button>
+      @if (errorMessage) {
+        <p class="text-sm text-cine-red text-center" role="alert">{{ errorMessage }}</p>
+      }
     </form>
 
     <p class="mt-6 text-center text-sm text-cine-gray-light">
